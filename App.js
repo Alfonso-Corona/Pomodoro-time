@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, Button, SafeAreaView, Platform, Touchable, TouchableOpacity } from 'react-native';
 import Header from './src/components/Header';
 import Timer from './src/components/Timer';
+import { Audio } from 'expo-av';
 
 const colors = ['#f7dc6f', '#a2d9ce', '#d7bde2'];
 
@@ -13,8 +14,35 @@ export default function App() {
   const [currentTime, setCurrentTime] = useState("POMO" | "SHORT" | "BREAK");
   const [isActive, setIsActive] = useState(false);
 
+  useEffect(() => {
+    let interval = null;
+    if(isActive){
+      interval = setInterval(() => {
+        setTime(time - 1);
+      }, 1000);
+    }else{
+      clearInterval(interval);
+    }
+
+    if(time === 0){
+      setIsActive(false);
+      setIsWorking((prevState) => !prevState);
+      setTime(isWorking ? 300 : 1500);
+    }
+
+    return () => clearInterval(interval);
+  }, [isActive, time]);
+
   const handleStartStop = () => {
+    play();
     setIsActive(!isActive);
+  }
+
+  const play = async() => {
+    const { sound } = await Audio.Sound.createAsync(
+      require('./assets/click.mp3')
+    );
+    await sound.playAsync();
   }
 
   return (
